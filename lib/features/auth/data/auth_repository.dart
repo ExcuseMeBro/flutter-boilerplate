@@ -2,14 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter_boilerplate/core/network/api_client.dart';
 import 'package:flutter_boilerplate/core/network/auth_interceptor.dart';
 import 'package:flutter_boilerplate/core/network/network_providers.dart';
-import 'package:flutter_boilerplate/core/storage/local_storage.dart';
 import 'package:flutter_boilerplate/core/storage/secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
     client: ref.watch(apiClientProvider),
-    localStorage: ref.watch(localStorageProvider),
     secureStorage: ref.watch(secureStorageProvider),
   );
 });
@@ -17,14 +15,11 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 class AuthRepository {
   AuthRepository({
     required ApiClient client,
-    required LocalStorage localStorage,
     required SecureStorage secureStorage,
   })  : _client = client,
-        _localStorage = localStorage,
         _secureStorage = secureStorage;
 
   final ApiClient _client;
-  final LocalStorage _localStorage;
   final SecureStorage _secureStorage;
 
   Future<void> login({
@@ -50,15 +45,8 @@ class AuthRepository {
     await Future.wait([
       _secureStorage.setAccessToken(access),
       _secureStorage.setRefreshToken(refresh),
-      _localStorage.setAccessToken(access),
-      _localStorage.setRefreshToken(refresh),
     ]);
   }
 
-  Future<void> logout() async {
-    await Future.wait([
-      _secureStorage.clearAuth(),
-      _localStorage.clearAuth(),
-    ]);
-  }
+  Future<void> logout() => _secureStorage.clearAuth();
 }

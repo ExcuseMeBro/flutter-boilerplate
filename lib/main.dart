@@ -27,6 +27,9 @@ Future<void> main() async {
   const secureStorage = SecureStorage();
   final firebaseStatus = await FirebaseBootstrap.initialize();
 
+  // Older builds mirrored auth tokens into plaintext prefs.
+  await LocalStorage(sharedPreferences).purgeLegacyTokens();
+
   runApp(
     ProviderScope(
       overrides: [

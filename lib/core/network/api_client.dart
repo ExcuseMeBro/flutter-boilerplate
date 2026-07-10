@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_boilerplate/core/config/app_config.dart';
 import 'package:flutter_boilerplate/core/network/api_exception.dart';
 import 'package:flutter_boilerplate/core/network/auth_interceptor.dart';
+import 'package:flutter_boilerplate/core/network/pretty_log_interceptor.dart';
 import 'package:flutter_boilerplate/core/storage/local_storage.dart';
 import 'package:flutter_boilerplate/core/storage/secure_storage.dart';
 
@@ -11,6 +12,7 @@ class ApiClient {
     required LocalStorage localStorage,
     required SecureStorage secureStorage,
     Dio? dio,
+    void Function()? onAuthFailure,
   }) : _dio = dio ?? Dio() {
     _dio.options = BaseOptions(
       baseUrl: _baseUri.toString(),
@@ -28,13 +30,10 @@ class ApiClient {
         secureStorage: secureStorage,
         localStorage: localStorage,
         dio: _dio,
-        refreshUri: _baseUri.resolve('/auth/refresh/'),
+        refreshUri: refreshUri,
+        onAuthFailure: onAuthFailure,
       ),
-      if (kDebugMode)
-        LogInterceptor(
-          requestBody: true,
-          responseBody: true,
-        ),
+      if (kDebugMode) PrettyLogInterceptor(),
     ]);
   }
 
@@ -46,6 +45,11 @@ class ApiClient {
         : '${AppConfig.apiBaseUrl}/';
     return Uri.parse(normalizedBase).resolve('${AppConfig.apiVersion}/');
   }
+
+  /// Relative on purpose: a leading slash would resolve to the host root and
+  /// drop the `/<apiVersion>` prefix.
+  @visibleForTesting
+  static Uri get refreshUri => _baseUri.resolve('auth/refresh/');
 
   Future<T> get<T>(
     String path, {

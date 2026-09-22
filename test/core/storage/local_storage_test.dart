@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_boilerplate/core/storage/local_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,6 +52,32 @@ void main() {
       'en',
       reason: 'startup migration must not overwrite a newer user selection',
     );
+  });
+
+  test('an explicit locale written during migration wins over a late legacy value',
+      () async {
+    final legacyCompleter = Completer<SharedPreferences>();
+    final async = installInMemoryPreferences();
+    final storage = LocalStorage(
+      async,
+      legacyPreferences: () => legacyCompleter.future,
+    );
+
+    final migration = storage.migrateLegacyLocale();
+    final write = storage.writeLocaleCode('en');
+
+    SharedPreferences.setMockInitialValues({
+      'Flutter Boilerplate.locale': 'ru',
+    });
+    legacyCompleter.complete(await SharedPreferences.getInstance());
+
+    await Future.wait([migration, write]);
+    expect(
+      await async.getString('Flutter Boilerplate.locale'),
+      'en',
+      reason: 'a late legacy value must not overwrite the newer selection',
+    );
+    expect(await storage.readLocaleCode(), 'en');
   });
 
   test('purges legacy plaintext tokens from both async and legacy stores',

@@ -39,6 +39,10 @@ class LocalStorage implements LocaleStore {
 
   SharedPreferences? _legacy;
 
+  /// Memoizes the single startup migration so every reader shares one result
+  /// and a concurrent explicit write can be ordered behind it.
+  Future<String?>? _migration;
+
   static const _localeKey = '${AppConfig.appName}.locale';
 
   /// Written by app versions that mirrored tokens into plaintext prefs.
@@ -49,12 +53,20 @@ class LocalStorage implements LocaleStore {
       _legacy ??= await _legacyPreferences();
 
   @override
-  Future<String?> readLocaleCode() => migrateLegacyLocale();
+  Future<String?> readLocaleCode() async {
+    // Share the one migration, then read the current value so a write that
+    // landed after migration is not masked by the cached result.
+    await migrateLegacyLocale();
+    return _async.getString(_localeKey);
+  }
 
   /// Returns the active locale, promoting a legacy-only value into the async
-  /// store. A locale already in the async store always wins, so a repeated
-  /// startup cannot overwrite a newer user selection.
-  Future<String?> migrateLegacyLocale() async {
+  /// store. Runs at most once per instance; a locale already in the async store
+  /// always wins, so a repeated startup cannot overwrite a newer user
+  /// selection.
+  Future<String?> migrateLegacyLocale() => _migration ??= _runMigration();
+
+  Future<String?> _runMigration() async {
     final current = await _async.getString(_localeKey);
     if (current != null && current.isNotEmpty) return current;
     final legacyCode = (await _legacyStore()).getString(_localeKey);
@@ -63,9 +75,13 @@ class LocalStorage implements LocaleStore {
     return legacyCode;
   }
 
+  /// A newer explicit selection is ordered behind the migration so a slow
+  /// legacy read cannot clobber it.
   @override
-  Future<void> writeLocaleCode(String code) =>
-      _async.setString(_localeKey, code);
+  Future<void> writeLocaleCode(String code) async {
+    await _migration;
+    await _async.setString(_localeKey, code);
+  }
 
   /// Erases tokens leaked into plaintext prefs by earlier builds, from both the
   /// active async store and the legacy store. Safe to call on every launch;

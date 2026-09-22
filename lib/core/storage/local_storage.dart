@@ -75,11 +75,11 @@ class LocalStorage implements LocaleStore {
     return legacyCode;
   }
 
-  /// A newer explicit selection is ordered behind the migration so a slow
-  /// legacy read cannot clobber it.
+  /// A newer explicit selection joins or starts the single migration, so a
+  /// concurrent legacy read cannot clobber it.
   @override
   Future<void> writeLocaleCode(String code) async {
-    await _migration;
+    await migrateLegacyLocale();
     await _async.setString(_localeKey, code);
   }
 

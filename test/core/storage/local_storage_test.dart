@@ -80,6 +80,41 @@ void main() {
     expect(await storage.readLocaleCode(), 'en');
   });
 
+  test('a write that starts first still waits for a blocked migration', () async {
+    final legacyCompleter = Completer<SharedPreferences>();
+    final async = installInMemoryPreferences();
+    final storage = LocalStorage(
+      async,
+      legacyPreferences: () => legacyCompleter.future,
+    );
+
+    var writeCompleted = false;
+    final write = storage
+        .writeLocaleCode('en')
+        .then((_) => writeCompleted = true);
+
+    await Future<void>.delayed(Duration.zero);
+    expect(
+      writeCompleted,
+      isFalse,
+      reason: 'the write must not land before the migration resolves',
+    );
+    expect(await async.getString('Flutter Boilerplate.locale'), isNull);
+
+    SharedPreferences.setMockInitialValues({
+      'Flutter Boilerplate.locale': 'ru',
+    });
+    legacyCompleter.complete(await SharedPreferences.getInstance());
+    await write;
+
+    expect(
+      await async.getString('Flutter Boilerplate.locale'),
+      'en',
+      reason: 'legacy must not overwrite a selection written during startup',
+    );
+    expect(await storage.readLocaleCode(), 'en');
+  });
+
   test('purges legacy plaintext tokens from both async and legacy stores',
       () async {
     SharedPreferences.setMockInitialValues({

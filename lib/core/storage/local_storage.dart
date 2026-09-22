@@ -49,14 +49,14 @@ class LocalStorage implements LocaleStore {
       _legacy ??= await _legacyPreferences();
 
   @override
-  Future<String?> readLocaleCode() async {
+  Future<String?> readLocaleCode() => migrateLegacyLocale();
+
+  /// Returns the active locale, promoting a legacy-only value into the async
+  /// store. A locale already in the async store always wins, so a repeated
+  /// startup cannot overwrite a newer user selection.
+  Future<String?> migrateLegacyLocale() async {
     final current = await _async.getString(_localeKey);
     if (current != null && current.isNotEmpty) return current;
-    return migrateLegacyLocale();
-  }
-
-  /// Promotes a legacy locale into the async store only when async has none.
-  Future<String?> migrateLegacyLocale() async {
     final legacyCode = (await _legacyStore()).getString(_localeKey);
     if (legacyCode == null || legacyCode.isEmpty) return null;
     await _async.setString(_localeKey, legacyCode);

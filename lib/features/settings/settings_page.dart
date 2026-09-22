@@ -69,7 +69,7 @@ class SettingsPage extends ConsumerWidget {
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: configured
-                ? () => _requestNotifications(context, ref, l10n)
+                ? () => _requestNotifications(context, l10n)
                 : null,
             icon: const Icon(Icons.notifications_active_outlined),
             label: Text(l10n.settingsEnableNotifications),
@@ -89,7 +89,6 @@ class SettingsPage extends ConsumerWidget {
 
   Future<void> _requestNotifications(
     BuildContext context,
-    WidgetRef ref,
     AppLocalizations l10n,
   ) async {
     var message = l10n.notificationsUnavailable;
@@ -106,28 +105,19 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Future<void> _copyFcmToken(BuildContext context, AppLocalizations l10n) async {
-    String? token;
+    var message = l10n.fcmTokenUnavailable;
     try {
-      token = await PushNotificationService.getToken();
+      final token = await PushNotificationService.getToken();
+      if (token != null && token.isNotEmpty) {
+        await Clipboard.setData(ClipboardData(text: token));
+        message = l10n.fcmTokenCopied;
+      }
     } catch (_) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.fcmTokenUnavailable)),
-      );
-      return;
-    }
-    if (token != null && token.isNotEmpty) {
-      await Clipboard.setData(ClipboardData(text: token));
+      // Keep the unavailable message on any platform failure.
     }
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          token == null || token.isEmpty
-              ? l10n.fcmTokenUnavailable
-              : l10n.fcmTokenCopied,
-        ),
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 

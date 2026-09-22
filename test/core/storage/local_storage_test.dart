@@ -34,6 +34,24 @@ void main() {
     expect(await storage.readLocaleCode(), 'en');
   });
 
+  test('startup migration keeps a newer async locale over a stale legacy value',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      'Flutter Boilerplate.locale': 'ru',
+    });
+    final async = installInMemoryPreferences({
+      'Flutter Boilerplate.locale': 'en',
+    });
+    final storage = LocalStorage(async);
+
+    expect(await storage.migrateLegacyLocale(), 'en');
+    expect(
+      await async.getString('Flutter Boilerplate.locale'),
+      'en',
+      reason: 'startup migration must not overwrite a newer user selection',
+    );
+  });
+
   test('purges legacy plaintext tokens from both async and legacy stores',
       () async {
     SharedPreferences.setMockInitialValues({

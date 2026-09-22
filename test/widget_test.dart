@@ -194,4 +194,34 @@ void main() {
     expect(find.text('FCM token copied to clipboard.'), findsOneWidget);
     expect(clipboardWrites, ['token-abc']);
   });
+
+  testWidgets('survives a clipboard write failure', (tester) async {
+    PushNotificationService.tokenProvider = () async => 'token-abc';
+    addTearDown(PushNotificationService.resetTestSeams);
+
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          throw PlatformException(code: 'clipboard_failure');
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+
+    await tester.pumpWidget(app(status: const FirebaseStatus.configured()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Check FCM token'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('FCM token unavailable.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

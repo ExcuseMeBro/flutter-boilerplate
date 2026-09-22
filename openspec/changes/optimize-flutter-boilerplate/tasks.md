@@ -30,4 +30,4 @@
 ## 6. Final Verification and Review
 
 - [x] 6.1 Run generated localization, `flutter analyze --no-pub`, `flutter test --no-pub`, and `flutter build apk --debug --no-pub`; inspect raw results and keep the worktree clean apart from intended changes.
-- [ ] 6.2 Review the full diff against all three capability specs and the copied WIP baseline, confirm the primary checkout stayed unchanged, and obtain the required source-current review/acceptance verdict before delivery.
+- [x] 6.2 Review the full diff against all three capability specs and the copied WIP baseline, confirm the primary checkout stayed unchanged, and obtain the required source-current review/acceptance verdict before delivery.

@@ -48,13 +48,9 @@ class PushNotificationService {
   }
 
   static Future<void> _initializePlatform() async {
-    const initializationSettings = local.InitializationSettings(
-      android: local.AndroidInitializationSettings('@mipmap/ic_launcher'),
-      iOS: local.DarwinInitializationSettings(),
-      macOS: local.DarwinInitializationSettings(),
+    await _localNotifications.initialize(
+      settings: buildInitializationSettings(),
     );
-
-    await _localNotifications.initialize(settings: initializationSettings);
 
     if (defaultTargetPlatform == TargetPlatform.android) {
       await _localNotifications
@@ -65,8 +61,27 @@ class PushNotificationService {
     FirebaseMessaging.onMessage.listen(_showForegroundNotification);
   }
 
+  /// Platform initialization settings shared with tests.
+  ///
+  /// Darwin permission flags are explicitly false: plugin initialization must
+  /// never prompt. Notification permission is requested only by
+  /// [requestPermission] from the Settings action.
+  @visibleForTesting
+  static local.InitializationSettings buildInitializationSettings() {
+    const darwin = local.DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
+    return const local.InitializationSettings(
+      android: local.AndroidInitializationSettings('@mipmap/ic_launcher'),
+      iOS: darwin,
+      macOS: darwin,
+    );
+  }
+
   static Future<NotificationSettings> _requestPlatformPermission() {
-    return FirebaseMessaging.instance.requestPermission(provisional: true);
+    return FirebaseMessaging.instance.requestPermission();
   }
 
   static Future<void> _showForegroundNotification(RemoteMessage message) async {

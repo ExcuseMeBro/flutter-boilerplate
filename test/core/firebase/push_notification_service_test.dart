@@ -30,4 +30,15 @@ void main() {
     expect(permissionRequests, 1);
     expect(result.authorizationStatus, AuthorizationStatus.authorized);
   });
+
+  test('Darwin startup settings never request permissions', () {
+    final settings = PushNotificationService.buildInitializationSettings();
+
+    for (final darwin in [settings.iOS, settings.macOS]) {
+      expect(darwin, isNotNull);
+      expect(darwin!.requestAlertPermission, isFalse);
+      expect(darwin.requestBadgePermission, isFalse);
+      expect(darwin.requestSoundPermission, isFalse);
+    }
+  });
 }

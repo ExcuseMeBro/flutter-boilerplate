@@ -4,9 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_boilerplate/core/firebase/push_notification_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final firebaseStatusProvider = Provider<FirebaseStatus>((ref) {
-  return const FirebaseStatus.unconfigured();
-});
+/// Initializes Firebase once, on demand. Not auto-disposed, so the status is
+/// computed at most once per process and never blocks `runApp`.
+final firebaseStatusProvider = FutureProvider<FirebaseStatus>(
+  (ref) => FirebaseBootstrap.initialize(),
+);
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {

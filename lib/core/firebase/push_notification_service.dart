@@ -15,9 +15,39 @@ class PushNotificationService {
     importance: local.Importance.high,
   );
 
+  /// Plugin setup without any permission prompt. Overrideable for unit tests
+  /// so the real `initialize` ordering can be verified without a device.
+  @visibleForTesting
+  static Future<void> Function() initializePlatform = _initializePlatform;
+
+  /// Overrideable in tests; returns the platform authorization result.
+  @visibleForTesting
+  static Future<NotificationSettings> Function() permissionRequester =
+      _requestPlatformPermission;
+
+  @visibleForTesting
+  static void resetTestSeams() {
+    initializePlatform = _initializePlatform;
+    permissionRequester = _requestPlatformPermission;
+  }
+
+  /// Registers the foreground listener and notification channel. Permission is
+  /// deliberately NOT requested here; Settings asks for it explicitly.
   static Future<void> initialize() async {
     if (kIsWeb) return;
+    await initializePlatform();
+  }
 
+  static Future<NotificationSettings> requestPermission() {
+    return permissionRequester();
+  }
+
+  static Future<String?> getToken() async {
+    if (kIsWeb) return null;
+    return FirebaseMessaging.instance.getToken();
+  }
+
+  static Future<void> _initializePlatform() async {
     const initializationSettings = local.InitializationSettings(
       android: local.AndroidInitializationSettings('@mipmap/ic_launcher'),
       iOS: local.DarwinInitializationSettings(),
@@ -32,13 +62,11 @@ class PushNotificationService {
           ?.createNotificationChannel(_defaultChannel);
     }
 
-    await FirebaseMessaging.instance.requestPermission(provisional: true);
     FirebaseMessaging.onMessage.listen(_showForegroundNotification);
   }
 
-  static Future<String?> getToken() async {
-    if (kIsWeb) return null;
-    return FirebaseMessaging.instance.getToken();
+  static Future<NotificationSettings> _requestPlatformPermission() {
+    return FirebaseMessaging.instance.requestPermission(provisional: true);
   }
 
   static Future<void> _showForegroundNotification(RemoteMessage message) async {

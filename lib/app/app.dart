@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boilerplate/app/router/app_router.dart';
 import 'package:flutter_boilerplate/app/theme/app_theme.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_boilerplate/core/localization/locale_controller.dart';
+import 'package:flutter_boilerplate/core/storage/local_storage.dart';
+import 'package:flutter_boilerplate/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BoilerplateApp extends ConsumerWidget {
@@ -9,26 +11,25 @@ class BoilerplateApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Runs the legacy plaintext-token cleanup once, off the first frame.
+    ref.watch(legacyTokenPurgeProvider);
+
     final router = ref.watch(appRouterProvider);
     final scaffoldMessengerKey = ref.watch(scaffoldMessengerKeyProvider);
+    final localeAsync = ref.watch(localeControllerProvider);
+    final locale = localeAsync.value ??
+        normalizeLocale(ref.watch(platformLocaleProvider));
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Boilerplate',
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       routerConfig: router,
       scaffoldMessengerKey: scaffoldMessengerKey,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en'),
-        Locale('uz'),
-        Locale('ru'),
-      ],
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }

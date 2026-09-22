@@ -1,8 +1,8 @@
 # 🚀 Flutter Boilerplate
 
-A clean, production-ready Flutter starter for building mobile apps faster. It ships with routing, state management, networking, secure authentication storage, optional Firebase messaging, local notifications, strict analysis, and focused tests.
+A clean, production-ready Flutter starter for building mobile apps faster. It ships with routing, state management, networking, secure authentication storage, optional Firebase messaging, local notifications, generated en/uz/ru localization, strict analysis, and focused tests.
 
-> ✅ Verified with Flutter `3.47.2` and Dart `3.13.2`.
+> ✅ Verified with Flutter `3.47.5` and Dart `3.13.4`. CI pins the same Flutter version.
 
 ## ✨ Highlights
 
@@ -14,9 +14,10 @@ A clean, production-ready Flutter starter for building mobile apps faster. It sh
 - 📲 **Native OTP autofill** for Android and iOS verification flows
 - ♻️ **Safe token refresh** with concurrent `401` request coalescing
 - 🪵 **Readable debug logging** with sensitive-data redaction
-- 🔥 **Optional Firebase** bootstrap and Cloud Messaging support
+- 🌍 **Generated en/uz/ru localization** that defaults to the system locale and persists the user's choice
+- 🔥 **Non-blocking, optional Firebase** bootstrap
 - 🔔 **Foreground local notifications** for incoming messages
-- 🌍 **Localization-ready** Flutter configuration
+- 🛡️ **Release configuration guard** that rejects placeholder or unsafe API endpoints
 - 🧪 **Analyzer and test coverage** for critical infrastructure
 
 ## 🧰 Tech stack
@@ -25,17 +26,17 @@ A clean, production-ready Flutter starter for building mobile apps faster. It sh
 | --- | --- |
 | State management | `flutter_riverpod` |
 | Navigation | `go_router` |
-| Networking | `dio`, `connectivity_plus` |
-| Local storage | `shared_preferences` |
+| Networking | `dio` |
+| Localization | Flutter `gen-l10n` + `intl` |
+| Local storage | `shared_preferences` (`SharedPreferencesAsync`) |
 | Secure storage | `flutter_secure_storage` |
 | Firebase | `firebase_core`, `firebase_messaging` |
 | Notifications | `flutter_local_notifications` |
-| Models and utilities | `equatable`, `json_annotation`, `intl` |
 
 ## ✅ Requirements
 
-- Flutter `3.44.0` or newer
-- Dart `3.12.0` or newer
+- Flutter `3.47.5` (pinned in CI)
+- Dart `3.13.0` or newer
 - Android API `24+` with compile SDK `37+`
 - iOS `15.0+`
 - Xcode and CocoaPods for iOS development
@@ -60,7 +61,9 @@ flutter run \
   --dart-define=API_VERSION=v1
 ```
 
-The app can start without Firebase configuration. Firebase-dependent features remain disabled until Firebase is configured.
+The app starts without Firebase configuration and without waiting for
+preferences or Firebase to load. Firebase-dependent features remain disabled
+until Firebase is configured.
 
 ## ⚙️ Runtime configuration
 
@@ -73,6 +76,11 @@ Environment-specific values are provided through `--dart-define`; secrets should
 | `API_VERSION` | `v1` | API path prefix |
 
 Example values are available in [`.env.example`](.env.example).
+
+Release builds validate `API_BASE_URL` before launching: the URL must be an
+absolute HTTPS URL and must not still be the placeholder
+`https://api.example.com`. Debug and test builds keep the template defaults so a
+fresh clone runs immediately.
 
 ### ▶️ Development run
 
@@ -87,11 +95,11 @@ flutter run \
 
 ```bash
 flutter build apk --release \
-  --dart-define=API_BASE_URL=https://api.example.com \
+  --dart-define=API_BASE_URL=https://api.your-service.example \
   --dart-define=API_VERSION=v1
 
 flutter build ios --release \
-  --dart-define=API_BASE_URL=https://api.example.com \
+  --dart-define=API_BASE_URL=https://api.your-service.example \
   --dart-define=API_VERSION=v1
 ```
 
@@ -104,22 +112,42 @@ lib/
 │   ├── theme/               # Material theme
 │   └── app.dart             # Root application widget
 ├── core/
-│   ├── config/              # Compile-time environment values
-│   ├── firebase/            # Firebase bootstrap and notifications
+│   ├── config/              # Compile-time environment values and validation
+│   ├── firebase/            # Non-blocking Firebase bootstrap and notifications
+│   ├── localization/        # Locale controller, persistence seam, fallback rules
 │   ├── network/             # Dio client, auth, errors, logging
-│   └── storage/             # SharedPreferences and secure storage
+│   └── storage/             # SharedPreferencesAsync and secure storage
 ├── features/
 │   ├── auth/                # Authentication repository and OTP input
 │   ├── home/                # Example home feature
-│   └── settings/            # Example settings feature
+│   └── settings/            # Example settings feature + locale/permission actions
+├── l10n/                    # ARB sources and generated localization classes
 └── main.dart                # Application bootstrap
 
 test/
-├── core/network/            # Networking and auth tests
-└── widget_test.dart         # Application smoke test
+├── core/                    # Config, localization, Firebase and networking tests
+├── features/                # Feature-level widget/service tests
+├── support/                 # Small in-test fakes (preferences, notification settings)
+└── widget_test.dart         # Application smoke tests
 ```
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for architecture rules and implementation details.
+
+## 🌍 Localization
+
+Visible starter strings come from generated `gen-l10n` resources in `lib/l10n`
+(`app_en.arb`, `app_uz.arb`, `app_ru.arb`). Regenerate after editing ARB files:
+
+```bash
+flutter gen-l10n
+```
+
+- With no saved preference, the app starts in the device locale when it is
+  English, Uzbek or Russian and falls back to English otherwise.
+- Choosing a language in **Settings** applies immediately and is persisted with
+  `SharedPreferencesAsync`.
+- API requests send the active language code as `Accept-Language` on every
+  request, including token refresh and uploads.
 
 ## 🌐 Networking and authentication
 
@@ -167,22 +195,30 @@ For reliable platform detection, the verification SMS should clearly contain one
 ## 🔐 Storage and security
 
 - Access and refresh tokens are stored only in platform secure storage.
-- SharedPreferences is reserved for non-sensitive preferences such as locale.
-- Legacy plaintext tokens are removed safely during application startup.
+- `SharedPreferencesAsync` is reserved for non-sensitive preferences such as locale.
+- Legacy plaintext tokens are removed shortly after startup, off the first frame.
 - Secrets and production credentials must be supplied outside source control.
 
 ## 🔥 Firebase setup
 
-Firebase is optional. To enable it:
+Firebase is optional and never blocks startup: `main` does not await it, and a
+Riverpod `FutureProvider` initializes it when the UI first observes the status.
+Missing configuration maps to an "unconfigured" status instead of failing the app.
+
+To enable it:
 
 ```bash
 dart pub global activate flutterfire_cli
 flutterfire configure
 ```
 
-Then add the generated platform configuration files required by Firebase. Without them, the bootstrap catches the initialization error and allows the rest of the app to continue running.
+Then add the generated platform configuration files required by Firebase. Once
+initialized, foreground messages are displayed through
+`flutter_local_notifications`.
 
-Foreground Firebase messages are displayed through `flutter_local_notifications` after notification initialization succeeds.
+Notification permission is **not** requested at startup. The user asks for it
+explicitly with the **Enable notifications** action in Settings; denial or an
+unavailable permission is reported without crashing.
 
 ## 🧪 Quality checks
 
@@ -192,20 +228,22 @@ Run the complete local check:
 make check
 ```
 
-Or run each command separately:
+Or run each command separately after `flutter pub get`:
 
 ```bash
-flutter pub get
-flutter analyze
-flutter test
+flutter analyze --no-pub
+flutter test --no-pub
 ```
 
 Build verification:
 
 ```bash
-flutter build apk --debug
+flutter build apk --debug --no-pub
 flutter build ios --simulator
 ```
+
+CI runs dependency resolution, the analyzer, tests, and an Android debug build
+on Linux. iOS builds remain a local macOS check.
 
 ## 🔄 Updating dependencies
 
@@ -214,12 +252,15 @@ flutter pub outdated
 flutter pub upgrade
 ```
 
-For major-version migrations, review package changelogs before applying:
+This project keeps only dependencies that serve an active feature. Prefer the
+standard library or a small helper over a new package, and document any
+unresolved major upgrade instead of forcing it. Review package changelogs before
+major migrations:
 
 ```bash
 flutter pub upgrade --major-versions
-flutter analyze
-flutter test
+flutter analyze --no-pub
+flutter test --no-pub
 ```
 
 ## 🏷️ Rename for a new app

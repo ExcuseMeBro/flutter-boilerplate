@@ -79,7 +79,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get fcmTokenUnavailable => 'FCM token mavjud emas.';
 
   @override
-  String get fcmTokenCopied => 'FCM token xizmatdan olindi.';
+  String get fcmTokenCopied => 'FCM token almashish buferiga nusxalandi.';
 
   @override
   String get notificationsEnabled => 'Bildirishnomalar yoqildi.';

@@ -156,7 +156,13 @@ class AuthInterceptor extends Interceptor {
       final response = await _refreshClient.postUri<Map<String, dynamic>>(
         _refreshUri,
         data: {'refresh': refreshToken},
-        options: Options(headers: const {'Accept': 'application/json'}),
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Accept-Language':
+                (await resolveActiveLocale(_localStorage)).languageCode,
+          },
+        ),
       );
 
       final data = response.data;

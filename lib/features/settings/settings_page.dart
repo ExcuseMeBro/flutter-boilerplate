@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/core/config/app_config.dart';
 import 'package:flutter_boilerplate/core/firebase/firebase_bootstrap.dart';
 import 'package:flutter_boilerplate/core/firebase/push_notification_service.dart';
@@ -91,20 +92,40 @@ class SettingsPage extends ConsumerWidget {
     WidgetRef ref,
     AppLocalizations l10n,
   ) async {
-    final settings = await PushNotificationService.requestPermission();
+    var message = l10n.notificationsUnavailable;
+    try {
+      final settings = await PushNotificationService.requestPermission();
+      message = _permissionMessage(l10n, settings.authorizationStatus);
+    } catch (_) {
+      // Keep the unavailable message on any platform failure.
+    }
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_permissionMessage(l10n, settings.authorizationStatus))),
+      SnackBar(content: Text(message)),
     );
   }
 
   Future<void> _copyFcmToken(BuildContext context, AppLocalizations l10n) async {
-    final token = await PushNotificationService.getToken();
+    String? token;
+    try {
+      token = await PushNotificationService.getToken();
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.fcmTokenUnavailable)),
+      );
+      return;
+    }
+    if (token != null && token.isNotEmpty) {
+      await Clipboard.setData(ClipboardData(text: token));
+    }
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          token == null ? l10n.fcmTokenUnavailable : l10n.fcmTokenCopied,
+          token == null || token.isEmpty
+              ? l10n.fcmTokenUnavailable
+              : l10n.fcmTokenCopied,
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boilerplate/core/localization/locale_controller.dart';
+import 'package:flutter_boilerplate/core/storage/local_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -39,6 +40,7 @@ void main() {
             FakeLocaleStore(savedCode: saved),
           ),
           platformLocaleProvider.overrideWithValue(platform),
+          startupMaintenanceProvider.overrideWith((ref) async {}),
         ],
       );
       addTearDown(container.dispose);
@@ -90,6 +92,7 @@ void main() {
         overrides: [
           localeStoreProvider.overrideWithValue(store),
           platformLocaleProvider.overrideWithValue(const Locale('en')),
+          startupMaintenanceProvider.overrideWith((ref) async {}),
         ],
       );
       addTearDown(container.dispose);

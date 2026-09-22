@@ -8,6 +8,7 @@ import 'package:flutter_boilerplate/core/network/auth_interceptor.dart';
 import 'package:flutter_boilerplate/core/storage/local_storage.dart';
 import 'package:flutter_boilerplate/core/storage/secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../support/in_memory_preferences.dart';
 
@@ -74,6 +75,7 @@ void main() {
   final refreshUri = Uri.parse('https://api.test/api/v1/auth/refresh/');
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     localStorage = LocalStorage(installInMemoryPreferences());
   });
 
@@ -369,6 +371,29 @@ void main() {
       expect(refreshRequest.uri, refreshUri);
       expect(refreshRequest.headers.containsKey('Authorization'), isFalse);
       expect(refreshRequest.connectTimeout, isNotNull);
+    });
+
+    test('sends the persisted active locale on the refresh request', () async {
+      localStorage = LocalStorage(
+        installInMemoryPreferences({'Flutter Boilerplate.locale': 'uz'}),
+      );
+      final storage = FakeSecureStorage(access: 'stale', refresh: 'r1');
+      final client = buildClient(
+        secureStorage: storage,
+        apiHandler: (options) async =>
+            options.headers['Authorization'] == 'Bearer fresh'
+                ? _json({'ok': true}, 200)
+                : _json({'detail': 'expired'}, 401),
+        refreshHandler: (_) async =>
+            _json({'access': 'fresh', 'refresh': 'r2'}, 200),
+      );
+
+      await client.dio.get<dynamic>('/me/');
+
+      expect(
+        client.refreshApi.requests.single.headers['Accept-Language'],
+        'uz',
+      );
     });
   });
 

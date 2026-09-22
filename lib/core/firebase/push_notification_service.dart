@@ -25,10 +25,15 @@ class PushNotificationService {
   static Future<NotificationSettings> Function() permissionRequester =
       _requestPlatformPermission;
 
+  /// Overrideable in tests; resolves the current FCM token.
+  @visibleForTesting
+  static Future<String?> Function() tokenProvider = _getPlatformToken;
+
   @visibleForTesting
   static void resetTestSeams() {
     initializePlatform = _initializePlatform;
     permissionRequester = _requestPlatformPermission;
+    tokenProvider = _getPlatformToken;
   }
 
   /// Registers the foreground listener and notification channel. Permission is
@@ -42,8 +47,10 @@ class PushNotificationService {
     return permissionRequester();
   }
 
-  static Future<String?> getToken() async {
-    if (kIsWeb) return null;
+  static Future<String?> getToken() => tokenProvider();
+
+  static Future<String?> _getPlatformToken() {
+    if (kIsWeb) return Future<String?>.value();
     return FirebaseMessaging.instance.getToken();
   }
 

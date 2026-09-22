@@ -23,7 +23,7 @@
   "localeUzbek": "Uzbek",
   "localeRussian": "Russian",
   "fcmTokenUnavailable": "FCM token unavailable.",
-  "fcmTokenCopied": "FCM token copied from service.",
+  "fcmTokenCopied": "FCM token copied to clipboard.",
   "notificationsEnabled": "Notifications enabled.",
   "notificationsDenied": "Notification permission was denied.",
   "notificationsUnavailable": "Notification permission is unavailable on this device."

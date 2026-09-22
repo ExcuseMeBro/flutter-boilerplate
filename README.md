@@ -196,6 +196,7 @@ For reliable platform detection, the verification SMS should clearly contain one
 
 - Access and refresh tokens are stored only in platform secure storage.
 - `SharedPreferencesAsync` is reserved for non-sensitive preferences such as locale.
+- A legacy locale saved by an older build is promoted into async storage on first launch.
 - Legacy plaintext tokens are removed shortly after startup, off the first frame.
 - Secrets and production credentials must be supplied outside source control.
 

@@ -47,6 +47,8 @@ Refresh endpoint default: `/auth/refresh/` under configured API base.
 - Access/refresh tokens are saved in platform secure storage.
 - `SharedPreferencesAsync` holds non-sensitive preferences such as locale.
 - Legacy plaintext tokens are purged once after startup.
+- A locale saved by an older build in the legacy `SharedPreferences` store is
+  promoted into `SharedPreferencesAsync` when the async value is missing.
 - `clearAuth()` clears both token keys.
 
 ## Firebase

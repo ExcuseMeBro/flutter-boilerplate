@@ -53,11 +53,12 @@ Future<Locale> resolveActiveLocale(
 
 class LocaleController extends AsyncNotifier<Locale> {
   @override
-  Future<Locale> build() {
-    return resolveActiveLocale(
-      ref.watch(localeStoreProvider),
-      platformLocale: ref.watch(platformLocaleProvider),
-    );
+  Future<Locale> build() async {
+    final store = ref.watch(localeStoreProvider);
+    final platformLocale = ref.watch(platformLocaleProvider);
+    // Legacy migration and token purge run before the locale is resolved.
+    await ref.watch(startupMaintenanceProvider.future);
+    return resolveActiveLocale(store, platformLocale: platformLocale);
   }
 
   /// Persists [locale] before exposing it so a restart restores the choice.

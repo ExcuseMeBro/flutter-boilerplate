@@ -23,7 +23,7 @@
   "localeUzbek": "Узбекский",
   "localeRussian": "Русский",
   "fcmTokenUnavailable": "FCM-токен недоступен.",
-  "fcmTokenCopied": "FCM-токен получен от сервиса.",
+  "fcmTokenCopied": "FCM-токен скопирован в буфер обмена.",
   "notificationsEnabled": "Уведомления включены.",
   "notificationsDenied": "В разрешении на уведомления отказано.",
   "notificationsUnavailable": "Разрешение на уведомления недоступно на этом устройстве."

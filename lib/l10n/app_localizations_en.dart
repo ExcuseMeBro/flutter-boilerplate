@@ -79,7 +79,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fcmTokenUnavailable => 'FCM token unavailable.';
 
   @override
-  String get fcmTokenCopied => 'FCM token copied from service.';
+  String get fcmTokenCopied => 'FCM token copied to clipboard.';
 
   @override
   String get notificationsEnabled => 'Notifications enabled.';

@@ -79,7 +79,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get fcmTokenUnavailable => 'FCM-токен недоступен.';
 
   @override
-  String get fcmTokenCopied => 'FCM-токен получен от сервиса.';
+  String get fcmTokenCopied => 'FCM-токен скопирован в буфер обмена.';
 
   @override
   String get notificationsEnabled => 'Уведомления включены.';

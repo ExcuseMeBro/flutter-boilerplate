@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/app/app.dart';
 import 'package:flutter_boilerplate/core/firebase/firebase_bootstrap.dart';
 import 'package:flutter_boilerplate/core/firebase/push_notification_service.dart';
@@ -17,6 +18,7 @@ void main() {
   late SharedPreferencesAsync prefs;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     prefs = installInMemoryPreferences();
   });
 
@@ -125,5 +127,71 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Notification permission was denied.'), findsOneWidget);
+  });
+
+  testWidgets('survives a notification permission exception', (tester) async {
+    PushNotificationService.permissionRequester =
+        () async => throw Exception('permission failed');
+    addTearDown(PushNotificationService.resetTestSeams);
+
+    await tester.pumpWidget(app(status: const FirebaseStatus.configured()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enable notifications'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Notification permission is unavailable on this device.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('survives an FCM token exception', (tester) async {
+    PushNotificationService.tokenProvider =
+        () async => throw Exception('token failed');
+    addTearDown(PushNotificationService.resetTestSeams);
+
+    await tester.pumpWidget(app(status: const FirebaseStatus.configured()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Check FCM token'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('FCM token unavailable.'), findsOneWidget);
+  });
+
+  testWidgets('copies a retrieved FCM token to the clipboard', (tester) async {
+    PushNotificationService.tokenProvider = () async => 'token-abc';
+    addTearDown(PushNotificationService.resetTestSeams);
+
+    final clipboardWrites = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          clipboardWrites.add((call.arguments as Map)['text'] as String);
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+
+    await tester.pumpWidget(app(status: const FirebaseStatus.configured()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Check FCM token'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('FCM token copied to clipboard.'), findsOneWidget);
+    expect(clipboardWrites, ['token-abc']);
   });
 }

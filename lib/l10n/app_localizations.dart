@@ -241,7 +241,7 @@ abstract class AppLocalizations {
   /// No description provided for @fcmTokenCopied.
   ///
   /// In en, this message translates to:
-  /// **'FCM token copied from service.'**
+  /// **'FCM token copied to clipboard.'**
   String get fcmTokenCopied;
 
   /// No description provided for @notificationsEnabled.

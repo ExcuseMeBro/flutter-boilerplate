@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_boilerplate/core/localization/locale_controller.dart';
 import 'package:flutter_boilerplate/core/storage/local_storage.dart';
 import 'package:flutter_boilerplate/core/storage/secure_storage.dart';
 
@@ -50,7 +51,8 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    options.headers['Accept-Language'] = _localStorage.getLocaleCode();
+    options.headers['Accept-Language'] =
+        (await resolveActiveLocale(_localStorage)).languageCode;
 
     if (options.extra[skipAuthExtraKey] == true) {
       handler.next(options);

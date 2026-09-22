@@ -8,7 +8,8 @@ import 'package:flutter_boilerplate/core/network/auth_interceptor.dart';
 import 'package:flutter_boilerplate/core/storage/local_storage.dart';
 import 'package:flutter_boilerplate/core/storage/secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../support/in_memory_preferences.dart';
 
 class FakeSecureStorage implements SecureStorage {
   FakeSecureStorage({this.access, this.refresh});
@@ -73,8 +74,7 @@ void main() {
   final refreshUri = Uri.parse('https://api.test/api/v1/auth/refresh/');
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    localStorage = LocalStorage(await SharedPreferences.getInstance());
+    localStorage = LocalStorage(installInMemoryPreferences());
   });
 
   /// Builds a Dio whose only interceptor is the one under test.
@@ -143,6 +143,21 @@ void main() {
       );
 
       expect(client.api.requests.single.headers['Authorization'], isNull);
+    });
+
+    test('uses the persisted active locale after a change', () async {
+      localStorage = LocalStorage(
+        installInMemoryPreferences({'Flutter Boilerplate.locale': 'uz'}),
+      );
+      final client = buildClient(
+        secureStorage: FakeSecureStorage(),
+        apiHandler: (_) async => _json({'ok': true}, 200),
+        refreshHandler: (_) async => _json({}, 200),
+      );
+
+      await client.dio.get<dynamic>('/me/');
+
+      expect(client.api.requests.single.headers['Accept-Language'], 'uz');
     });
   });
 
@@ -359,19 +374,18 @@ void main() {
 
   group('LocalStorage', () {
     test('purges tokens leaked into prefs by previous app versions', () async {
-      SharedPreferences.setMockInitialValues({
+      final prefs = installInMemoryPreferences({
         'Flutter Boilerplate.accessToken': 'leaked-access',
         'Flutter Boilerplate.refreshToken': 'leaked-refresh',
         'Flutter Boilerplate.locale': 'uz',
       });
-      final prefs = await SharedPreferences.getInstance();
       final storage = LocalStorage(prefs);
 
       await storage.purgeLegacyTokens();
 
-      expect(prefs.getString('Flutter Boilerplate.accessToken'), isNull);
-      expect(prefs.getString('Flutter Boilerplate.refreshToken'), isNull);
-      expect(storage.getLocaleCode(), 'uz', reason: 'locale must survive');
+      expect(await prefs.getString('Flutter Boilerplate.accessToken'), isNull);
+      expect(await prefs.getString('Flutter Boilerplate.refreshToken'), isNull);
+      expect(await storage.readLocaleCode(), 'uz', reason: 'locale must survive');
     });
   });
 }

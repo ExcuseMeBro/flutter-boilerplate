@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_boilerplate/core/config/app_config.dart';
 import 'package:flutter_boilerplate/core/firebase/firebase_bootstrap.dart';
 import 'package:flutter_boilerplate/features/settings/settings_page.dart';
+import 'package:flutter_boilerplate/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,7 +14,13 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final firebaseStatus = ref.watch(firebaseStatusProvider);
+    final firebaseSubtitle = firebaseStatus.isLoading
+        ? l10n.firebaseLoading
+        : (firebaseStatus.value?.isConfigured ?? false)
+            ? l10n.firebaseConfigured
+            : l10n.firebaseNotConfigured;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -21,7 +28,7 @@ class HomePage extends ConsumerWidget {
         title: const Text(AppConfig.appName),
         actions: [
           IconButton(
-            tooltip: 'Settings',
+            tooltip: l10n.settingsTitle,
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.goNamed(SettingsPage.routeName),
           ),
@@ -48,7 +55,7 @@ class HomePage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Production Flutter starter',
+                      l10n.homeHeadline,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: colorScheme.onPrimaryContainer,
@@ -56,7 +63,7 @@ class HomePage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Riverpod, GoRouter, Dio, secure storage, Firebase-ready bootstrap.',
+                      l10n.homeSubtitle,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: colorScheme.onPrimaryContainer,
                           ),
@@ -66,21 +73,21 @@ class HomePage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const _StatusTile(
+            _StatusTile(
               icon: Icons.api_outlined,
-              title: 'API base URL',
+              title: l10n.homeApiBaseUrl,
               subtitle: AppConfig.apiBaseUrl,
             ),
             _StatusTile(
               icon: Icons.notifications_active_outlined,
-              title: 'Firebase',
-              subtitle: firebaseStatus.isConfigured ? 'Configured' : 'Not configured yet',
+              title: l10n.homeFirebase,
+              subtitle: firebaseSubtitle,
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () => context.goNamed(SettingsPage.routeName),
               icon: const Icon(Icons.tune_outlined),
-              label: const Text('Open settings'),
+              label: Text(l10n.homeOpenSettings),
             ),
           ],
         ),

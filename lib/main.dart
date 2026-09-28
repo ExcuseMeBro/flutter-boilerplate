@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/app/app.dart';
-import 'package:flutter_boilerplate/core/firebase/firebase_bootstrap.dart';
-import 'package:flutter_boilerplate/core/storage/local_storage.dart';
+import 'package:flutter_boilerplate/core/config/app_config.dart';
 import 'package:flutter_boilerplate/core/storage/secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,19 +21,17 @@ Future<void> main() async {
     ),
   );
 
-  final sharedPreferences = await SharedPreferences.getInstance();
   const secureStorage = SecureStorage();
-  final firebaseStatus = await FirebaseBootstrap.initialize();
 
-  // Older builds mirrored auth tokens into plaintext prefs.
-  await LocalStorage(sharedPreferences).purgeLegacyTokens();
+  AppConfig.validate(
+    apiBaseUrl: AppConfig.apiBaseUrl,
+    isRelease: AppConfig.isRelease,
+  );
 
   runApp(
     ProviderScope(
       overrides: [
-        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
         secureStorageProvider.overrideWithValue(secureStorage),
-        firebaseStatusProvider.overrideWithValue(firebaseStatus),
       ],
       child: const BoilerplateApp(),
     ),

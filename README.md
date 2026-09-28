@@ -2,7 +2,7 @@
 
 A clean, production-ready Flutter starter for building mobile apps faster. It ships with routing, state management, networking, secure authentication storage, optional Firebase messaging, local notifications, generated en/uz/ru localization, strict analysis, and focused tests.
 
-> ✅ Verified with Flutter `3.47.5` and Dart `3.13.4`. CI pins the same Flutter version.
+> ✅ Verified with Flutter `3.47.5` and Dart `3.13.4`.
 
 ## ✨ Highlights
 
@@ -35,7 +35,7 @@ A clean, production-ready Flutter starter for building mobile apps faster. It sh
 
 ## ✅ Requirements
 
-- Flutter `3.47.5` (pinned in CI)
+- Flutter `3.47.5`
 - Dart `3.13.0` or newer
 - Android API `24+` with compile SDK `37+`
 - iOS `15.0+`
@@ -243,8 +243,7 @@ flutter build apk --debug --no-pub
 flutter build ios --simulator
 ```
 
-CI runs dependency resolution, the analyzer, tests, and an Android debug build
-on Linux. iOS builds remain a local macOS check.
+Run analyzer, tests, and platform builds locally before opening a PR.
 
 ## 🔄 Updating dependencies
 

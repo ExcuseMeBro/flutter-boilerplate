@@ -33,7 +33,7 @@ Future<void> main() async {
       overrides: [
         secureStorageProvider.overrideWithValue(secureStorage),
       ],
-      child: const BoilerplateApp(),
+      child: const Game2048App(),
     ),
   );
 }

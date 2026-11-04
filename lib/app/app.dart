@@ -5,8 +5,8 @@ import 'package:flutter_boilerplate/core/localization/locale_controller.dart';
 import 'package:flutter_boilerplate/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BoilerplateApp extends ConsumerWidget {
-  const BoilerplateApp({super.key});
+class Game2048App extends ConsumerWidget {
+  const Game2048App({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,7 +18,7 @@ class BoilerplateApp extends ConsumerWidget {
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+      onGenerateTitle: (context) => '2048',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       routerConfig: router,

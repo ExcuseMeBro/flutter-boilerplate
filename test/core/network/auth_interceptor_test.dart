@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_boilerplate/core/config/app_config.dart';
 import 'package:flutter_boilerplate/core/network/api_client.dart';
 import 'package:flutter_boilerplate/core/network/auth_interceptor.dart';
 import 'package:flutter_boilerplate/core/storage/local_storage.dart';
@@ -149,7 +150,7 @@ void main() {
 
     test('uses the persisted active locale after a change', () async {
       localStorage = LocalStorage(
-        installInMemoryPreferences({'Flutter Boilerplate.locale': 'uz'}),
+        installInMemoryPreferences({'${AppConfig.appName}.locale': 'uz'}),
       );
       final client = buildClient(
         secureStorage: FakeSecureStorage(),
@@ -375,7 +376,7 @@ void main() {
 
     test('sends the persisted active locale on the refresh request', () async {
       localStorage = LocalStorage(
-        installInMemoryPreferences({'Flutter Boilerplate.locale': 'uz'}),
+        installInMemoryPreferences({'${AppConfig.appName}.locale': 'uz'}),
       );
       final storage = FakeSecureStorage(access: 'stale', refresh: 'r1');
       final client = buildClient(
@@ -400,16 +401,16 @@ void main() {
   group('LocalStorage', () {
     test('purges tokens leaked into prefs by previous app versions', () async {
       final prefs = installInMemoryPreferences({
-        'Flutter Boilerplate.accessToken': 'leaked-access',
-        'Flutter Boilerplate.refreshToken': 'leaked-refresh',
-        'Flutter Boilerplate.locale': 'uz',
+        '${AppConfig.appName}.accessToken': 'leaked-access',
+        '${AppConfig.appName}.refreshToken': 'leaked-refresh',
+        '${AppConfig.appName}.locale': 'uz',
       });
       final storage = LocalStorage(prefs);
 
       await storage.purgeLegacyTokens();
 
-      expect(await prefs.getString('Flutter Boilerplate.accessToken'), isNull);
-      expect(await prefs.getString('Flutter Boilerplate.refreshToken'), isNull);
+      expect(await prefs.getString('${AppConfig.appName}.accessToken'), isNull);
+      expect(await prefs.getString('${AppConfig.appName}.refreshToken'), isNull);
       expect(await storage.readLocaleCode(), 'uz', reason: 'locale must survive');
     });
   });

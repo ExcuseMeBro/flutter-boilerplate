@@ -5,7 +5,7 @@ class AppConfig {
 
   static const appName = String.fromEnvironment(
     'APP_NAME',
-    defaultValue: 'Flutter Boilerplate',
+    defaultValue: '2048',
   );
 
   static const apiBaseUrl = String.fromEnvironment(

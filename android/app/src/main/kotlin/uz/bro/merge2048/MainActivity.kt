@@ -1,4 +1,4 @@
-package uz.bro.flutter_boilerplate
+package uz.bro.merge2048
 
 import io.flutter.embedding.android.FlutterActivity
 

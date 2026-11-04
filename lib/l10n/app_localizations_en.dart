@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Flutter Boilerplate';
+  String get appTitle => '2048';
 
   @override
   String get homeHeadline => 'Production Flutter starter';

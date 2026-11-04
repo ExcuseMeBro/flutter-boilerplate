@@ -1,6 +1,6 @@
 {
   "@@locale": "uz",
-  "appTitle": "Flutter Boilerplate",
+  "appTitle": "2048",
   "homeHeadline": "Ishlab chiqarishga tayyor Flutter shabloni",
   "homeSubtitle": "Riverpod, GoRouter, Dio, xavfsiz saqlash, Firebase-ga tayyor bootstrap.",
   "homeApiBaseUrl": "API manzili",

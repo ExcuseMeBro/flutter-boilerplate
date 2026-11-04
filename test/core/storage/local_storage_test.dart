@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_boilerplate/core/config/app_config.dart';
 import 'package:flutter_boilerplate/core/storage/local_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,14 +12,14 @@ void main() {
 
   test('migrates a legacy locale into async storage and returns it', () async {
     SharedPreferences.setMockInitialValues({
-      'Flutter Boilerplate.locale': 'uz',
+      '${AppConfig.appName}.locale': 'uz',
     });
     final async = installInMemoryPreferences();
     final storage = LocalStorage(async);
 
     expect(await storage.readLocaleCode(), 'uz');
     expect(
-      await async.getString('Flutter Boilerplate.locale'),
+      await async.getString('${AppConfig.appName}.locale'),
       'uz',
       reason: 'a legacy locale must be promoted into the active async store',
     );
@@ -26,10 +27,10 @@ void main() {
 
   test('keeps an existing async locale over a stale legacy value', () async {
     SharedPreferences.setMockInitialValues({
-      'Flutter Boilerplate.locale': 'ru',
+      '${AppConfig.appName}.locale': 'ru',
     });
     final async = installInMemoryPreferences({
-      'Flutter Boilerplate.locale': 'en',
+      '${AppConfig.appName}.locale': 'en',
     });
     final storage = LocalStorage(async);
 
@@ -39,16 +40,16 @@ void main() {
   test('startup migration keeps a newer async locale over a stale legacy value',
       () async {
     SharedPreferences.setMockInitialValues({
-      'Flutter Boilerplate.locale': 'ru',
+      '${AppConfig.appName}.locale': 'ru',
     });
     final async = installInMemoryPreferences({
-      'Flutter Boilerplate.locale': 'en',
+      '${AppConfig.appName}.locale': 'en',
     });
     final storage = LocalStorage(async);
 
     expect(await storage.migrateLegacyLocale(), 'en');
     expect(
-      await async.getString('Flutter Boilerplate.locale'),
+      await async.getString('${AppConfig.appName}.locale'),
       'en',
       reason: 'startup migration must not overwrite a newer user selection',
     );
@@ -67,13 +68,13 @@ void main() {
     final write = storage.writeLocaleCode('en');
 
     SharedPreferences.setMockInitialValues({
-      'Flutter Boilerplate.locale': 'ru',
+      '${AppConfig.appName}.locale': 'ru',
     });
     legacyCompleter.complete(await SharedPreferences.getInstance());
 
     await Future.wait([migration, write]);
     expect(
-      await async.getString('Flutter Boilerplate.locale'),
+      await async.getString('${AppConfig.appName}.locale'),
       'en',
       reason: 'a late legacy value must not overwrite the newer selection',
     );
@@ -99,16 +100,16 @@ void main() {
       isFalse,
       reason: 'the write must not land before the migration resolves',
     );
-    expect(await async.getString('Flutter Boilerplate.locale'), isNull);
+    expect(await async.getString('${AppConfig.appName}.locale'), isNull);
 
     SharedPreferences.setMockInitialValues({
-      'Flutter Boilerplate.locale': 'ru',
+      '${AppConfig.appName}.locale': 'ru',
     });
     legacyCompleter.complete(await SharedPreferences.getInstance());
     await write;
 
     expect(
-      await async.getString('Flutter Boilerplate.locale'),
+      await async.getString('${AppConfig.appName}.locale'),
       'en',
       reason: 'legacy must not overwrite a selection written during startup',
     );
@@ -118,25 +119,25 @@ void main() {
   test('purges legacy plaintext tokens from both async and legacy stores',
       () async {
     SharedPreferences.setMockInitialValues({
-      'Flutter Boilerplate.accessToken': 'legacy-access',
-      'Flutter Boilerplate.refreshToken': 'legacy-refresh',
-      'Flutter Boilerplate.locale': 'uz',
+      '${AppConfig.appName}.accessToken': 'legacy-access',
+      '${AppConfig.appName}.refreshToken': 'legacy-refresh',
+      '${AppConfig.appName}.locale': 'uz',
     });
     final legacy = await SharedPreferences.getInstance();
     final async = installInMemoryPreferences({
-      'Flutter Boilerplate.accessToken': 'async-access',
-      'Flutter Boilerplate.refreshToken': 'async-refresh',
+      '${AppConfig.appName}.accessToken': 'async-access',
+      '${AppConfig.appName}.refreshToken': 'async-refresh',
     });
     final storage = LocalStorage(async);
 
     await storage.purgeLegacyTokens();
 
-    expect(await async.getString('Flutter Boilerplate.accessToken'), isNull);
-    expect(await async.getString('Flutter Boilerplate.refreshToken'), isNull);
-    expect(legacy.getString('Flutter Boilerplate.accessToken'), isNull);
-    expect(legacy.getString('Flutter Boilerplate.refreshToken'), isNull);
+    expect(await async.getString('${AppConfig.appName}.accessToken'), isNull);
+    expect(await async.getString('${AppConfig.appName}.refreshToken'), isNull);
+    expect(legacy.getString('${AppConfig.appName}.accessToken'), isNull);
+    expect(legacy.getString('${AppConfig.appName}.refreshToken'), isNull);
     expect(
-      legacy.getString('Flutter Boilerplate.locale'),
+      legacy.getString('${AppConfig.appName}.locale'),
       'uz',
       reason: 'token purge must not remove the locale',
     );

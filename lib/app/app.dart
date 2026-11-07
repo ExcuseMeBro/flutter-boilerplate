@@ -5,20 +5,20 @@ import 'package:flutter_boilerplate/core/localization/locale_controller.dart';
 import 'package:flutter_boilerplate/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Game2048App extends ConsumerWidget {
-  const Game2048App({super.key});
+class StarterApp extends ConsumerWidget {
+  const StarterApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
     final scaffoldMessengerKey = ref.watch(scaffoldMessengerKeyProvider);
     final localeAsync = ref.watch(localeControllerProvider);
-    final locale = localeAsync.value ??
-        normalizeLocale(ref.watch(platformLocaleProvider));
+    final locale =
+        localeAsync.value ?? normalizeLocale(ref.watch(platformLocaleProvider));
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      onGenerateTitle: (context) => '2048',
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       routerConfig: router,

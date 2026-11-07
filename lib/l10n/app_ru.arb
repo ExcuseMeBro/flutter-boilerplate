@@ -1,6 +1,6 @@
 {
   "@@locale": "ru",
-  "appTitle": "2048",
+  "appTitle": "Flutter starter",
   "homeHeadline": "Готовый к продакшену Flutter-шаблон",
   "homeSubtitle": "Riverpod, GoRouter, Dio, безопасное хранилище, bootstrap с поддержкой Firebase.",
   "homeApiBaseUrl": "Базовый URL API",

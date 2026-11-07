@@ -1,5 +1,6 @@
 import 'package:flutter_boilerplate/core/config/app_config.dart';
 import 'package:flutter_boilerplate/core/localization/locale_store.dart';
+import 'package:flutter_boilerplate/core/storage/coalesced_read.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -38,6 +39,10 @@ class LocalStorage implements LocaleStore {
   final Future<SharedPreferences> Function() _legacyPreferences;
 
   SharedPreferences? _legacy;
+  late final _locale = CoalescedRead(() async {
+    await migrateLegacyLocale();
+    return _async.getString(_localeKey);
+  });
 
   /// Memoizes the single startup migration so every reader shares one result
   /// and a concurrent explicit write can be ordered behind it.
@@ -53,12 +58,7 @@ class LocalStorage implements LocaleStore {
       _legacy ??= await _legacyPreferences();
 
   @override
-  Future<String?> readLocaleCode() async {
-    // Share the one migration, then read the current value so a write that
-    // landed after migration is not masked by the cached result.
-    await migrateLegacyLocale();
-    return _async.getString(_localeKey);
-  }
+  Future<String?> readLocaleCode() => _locale.read();
 
   /// Returns the active locale, promoting a legacy-only value into the async
   /// store. Runs at most once per instance; a locale already in the async store
@@ -78,10 +78,10 @@ class LocalStorage implements LocaleStore {
   /// A newer explicit selection joins or starts the single migration, so a
   /// concurrent legacy read cannot clobber it.
   @override
-  Future<void> writeLocaleCode(String code) async {
+  Future<void> writeLocaleCode(String code) => _locale.write(() async {
     await migrateLegacyLocale();
     await _async.setString(_localeKey, code);
-  }
+  });
 
   /// Erases tokens leaked into plaintext prefs by earlier builds, from both the
   /// active async store and the legacy store. Safe to call on every launch;

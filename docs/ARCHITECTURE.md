@@ -1,6 +1,6 @@
 # Architecture
 
-This template keeps only reusable production foundations from BabyTime mobile app.
+This template provides reusable mobile application foundations and a generic starter screen.
 
 ## Rules
 
@@ -14,7 +14,7 @@ This template keeps only reusable production foundations from BabyTime mobile ap
 
 `main` performs only synchronous Flutter/system setup, validates release
 configuration, and calls `runApp`. It never awaits preferences or Firebase, so
-the first frame is not blocked. `BoilerplateApp` watches the async locale
+the first frame is not blocked. `StarterApp` watches the async locale
 controller and the Firebase status provider and renders while either is still
 loading.
 
@@ -50,6 +50,10 @@ Refresh endpoint default: `/auth/refresh/` under configured API base.
 - A locale saved by an older build in the legacy `SharedPreferences` store is
   promoted into `SharedPreferencesAsync` when the async value is missing.
 - `clearAuth()` clears both token keys.
+- `CoalescedRead` shares overlapping platform reads only; completed values are not cached.
+  Writes are ordered and invalidate pending reads, so an earlier read resolves against
+  the new generation instead of returning a pre-write value. Failed writes propagate
+  to their caller without poisoning later reads. See `REQUEST_STORAGE_PROFILE.md`.
 
 ## Firebase
 

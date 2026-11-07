@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "2048",
+  "appTitle": "Flutter starter",
   "homeHeadline": "Production Flutter starter",
   "homeSubtitle": "Riverpod, GoRouter, Dio, secure storage, Firebase-ready bootstrap.",
   "homeApiBaseUrl": "API base URL",

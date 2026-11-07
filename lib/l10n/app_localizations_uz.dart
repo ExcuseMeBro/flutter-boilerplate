@@ -9,7 +9,7 @@ class AppLocalizationsUz extends AppLocalizations {
   AppLocalizationsUz([String locale = 'uz']) : super(locale);
 
   @override
-  String get appTitle => '2048';
+  String get appTitle => 'Flutter starter';
 
   @override
   String get homeHeadline => 'Ishlab chiqarishga tayyor Flutter shabloni';

@@ -1,4 +1,4 @@
-package uz.bro.merge2048
+package com.example.flutterstarter
 
 import io.flutter.embedding.android.FlutterActivity
 

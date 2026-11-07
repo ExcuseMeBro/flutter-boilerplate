@@ -18,7 +18,7 @@ if (gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = tr
 }
 
 android {
-    namespace = "uz.bro.merge2048"
+    namespace = "com.example.flutterstarter"
     compileSdk = maxOf(37, flutter.compileSdkVersion)
     ndkVersion = flutter.ndkVersion
 
@@ -33,7 +33,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "uz.bro.merge2048"
+        applicationId = "com.example.flutterstarter"
         minSdk = maxOf(24, flutter.minSdkVersion)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

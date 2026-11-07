@@ -9,7 +9,7 @@ class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get appTitle => '2048';
+  String get appTitle => 'Flutter starter';
 
   @override
   String get homeHeadline => 'Готовый к продакшену Flutter-шаблон';
